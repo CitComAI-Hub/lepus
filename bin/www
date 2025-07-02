@@ -3,6 +3,8 @@
 /**
  * Module dependencies.
  */
+require('dotenv').config()
+
 
 const lepus = require('../lib/lepus');
 const config = require('../lib/configService');

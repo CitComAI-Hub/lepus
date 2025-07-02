@@ -30,13 +30,21 @@ app.use(function (req, res, next) {
     headers.accept = 'application/json';
     delete headers['link'];
 
-    if (req.header('NGSILD-Tenant')) {
+    // Propagar Fiware-Service
+    if (req.header('Fiware-Service')) {
+        res.locals.tenant = req.header('Fiware-Service');
+        headers['fiware-service'] = req.header('Fiware-Service');
+    } else if (req.header('NGSILD-Tenant')) {
         res.locals.tenant = req.header('NGSILD-Tenant');
         headers['fiware-service'] = res.locals.tenant;
         delete headers['ngsild-tenant'];
     }
 
-    if (req.query.scopeQ) {
+    // Propagar Fiware-ServicePath
+    if (req.header('Fiware-ServicePath')) {
+        res.locals.servicePath = req.header('Fiware-ServicePath');
+        headers['fiware-servicepath'] = req.header('Fiware-ServicePath');
+    } else if (req.query.scopeQ) {
         const scope = req.query.scopeQ;
         const servicePath = scope.startsWith('/') ? scope : '/' + scope;
         res.locals.servicePath = servicePath;

@@ -120,7 +120,7 @@ async function readEntities(req, res) {
     } else {
         debug(req.method, req.path);
     }
-    const response = await Request.sendRequest(req.path, options);
+    const response = await Request.sendRequest(req.path, { ...options, res });
 
     res.statusCode = response.statusCode;
     if (res.locals.tenant) {
