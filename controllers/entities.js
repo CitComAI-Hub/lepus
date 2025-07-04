@@ -154,11 +154,11 @@ async function readEntities(req, res) {
     } else if (transformFlags.attrsOnly) {
         ldPayload = NGSI_LD.formatAttribute(v2Body, transformFlags);
     } else if (v2Body instanceof Array) {
-        ldPayload = _.map(v2Body, (entity) => {
-            return NGSI_LD.formatEntity(entity, isJSONLD, transformFlags);
-        });
+        ldPayload = await Promise.all(v2Body.map(async (entity) => {
+            return await NGSI_LD.formatEntityWithDynamicContext(entity, isJSONLD, transformFlags);
+        }));
     } else {
-        ldPayload = NGSI_LD.formatEntity(v2Body, isJSONLD, transformFlags);
+        ldPayload = await NGSI_LD.formatEntityWithDynamicContext(v2Body, isJSONLD, transformFlags);
     }
     ldPayload = NGSI_LD.appendContext(ldPayload, isJSONLD);
     Request.linkContext(res, isJSONLD);
