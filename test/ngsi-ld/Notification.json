@@ -2,7 +2,7 @@
   "id": "urn:ngsi-ld:Notification:xxx",
   "type": "Notification",
   "notifiedAt": "2024-02-xxx",
-  "subscriptionId": "undefinedSubscription:001",
+  "subscriptionId": "urn:ngsi-ld:Subscription:001",
   "data": [
     {
       "id": "urn:ngsi-ld:TemperatureSensor:001",
