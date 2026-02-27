@@ -13,6 +13,7 @@ const path = require('node:path');
 const NGSI_LD = require('../lib/ngsi-ld');
 const NGSI_V2 = require('../lib/ngsi-v2');
 const Request = require('../lib/request');
+const ENTITY_SERVICE_PATHS = require('../lib/entityServicePaths');
 
 /**
  * Forward the proxied request to read data and
@@ -30,6 +31,21 @@ async function readEntities(req, res) {
     const queryFormat = req.query.format;
     const queryAttrs = req.query.attrs ? req.query.attrs.split(',') : null;
     const queryType = req.query.type ? req.query.type.split(',') : [];
+
+    // --- Asignación dinámica de tenant y servicePath ---
+    // Tenant fijo
+    const tenant = 'tef_vlci';
+    // ServicePath por tipo (solo el primero si hay varios)
+    let servicePath = '/';
+    if (queryType.length > 0) {
+        const type = queryType[0];
+        const pathMap = ENTITY_SERVICE_PATHS[type];
+        if (Array.isArray(pathMap)) {
+            servicePath = pathMap[0];
+        } else if (typeof pathMap === 'string') {
+            servicePath = pathMap;
+        }
+    }
     const queryQ = req.query.q;
 
     const transformFlags = {};
@@ -61,7 +77,11 @@ async function readEntities(req, res) {
         v2queryOptions = v2queryOptions ? v2queryOptions.push('count') : ['count'];
     }
     const baseUrl = createNextPrevBaseURL(req);
-    const headers = NGSI_V2.setHeaders(res);
+    // Construir headers para autenticación y petición
+    const headers = {
+        'fiware-service': tenant,
+        'fiware-servicepath': servicePath
+    };
     const options = {
         method: req.method,
         headers,
@@ -123,12 +143,8 @@ async function readEntities(req, res) {
     const response = await Request.sendRequest(req.path, { ...options, res });
 
     res.statusCode = response.statusCode;
-    if (res.locals.tenant) {
-        res.set('NGSILD-Tenant', res.locals.tenant);
-    }
-    if (res.locals.servicePath) {
-        res.set('NGSILD-Path', res.locals.servicePath);
-    }
+    res.set('NGSILD-Tenant', tenant);
+    res.set('NGSILD-Path', servicePath);
     const v2Body = response.body ? JSON.parse(response.body) : {};
     const v2Headers = response.headers;
     const type = v2Body.type;
