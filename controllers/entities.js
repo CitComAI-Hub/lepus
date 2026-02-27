@@ -180,7 +180,7 @@ async function readEntities(req, res) {
     Request.linkContext(res, isJSONLD);
     Request.ngsiVersion(res, transformFlags.version);
     res.type(!isJSONLD ? 'application/json' : 'application/ld+json');
-    return Request.sendResponse(res, v2Body, ldPayload, contentType, v2Headers, transformFlags, baseUrl);
+    return Request.sendResponse(req, res, v2Body, ldPayload, contentType, v2Headers, transformFlags, baseUrl);
 }
 
 /**
@@ -203,7 +203,7 @@ async function createEntity(req, res) {
     const response = await Request.sendRequest(req.path, options);
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -226,7 +226,7 @@ async function deleteEntity(req, res) {
     const response = await Request.sendRequest(req.path, options);
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -251,7 +251,7 @@ async function updateEntity(req, res) {
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
 
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -277,7 +277,7 @@ async function replaceEntity(req, res) {
     const response = await Request.sendRequest(path.join(req.path, 'attrs'), options);
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -340,7 +340,7 @@ async function mergeEntity(req, res) {
     const responsePut = await Request.sendRequest(path.join(req.path, 'attrs'), optionsPut);
     res.statusCode = responsePut.statusCode;
     const v2Body = responsePut.body ? JSON.parse(responsePut.body) : undefined;
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -365,7 +365,7 @@ async function updateEntityAttribute(req, res) {
     const response = await Request.sendRequest(path.join('/entities', req.params.id, 'attrs'), options);
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -390,7 +390,7 @@ async function replaceEntityAttribute(req, res) {
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
 
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -414,7 +414,7 @@ async function deleteEntityAttribute(req, res) {
     res.statusCode = response.statusCode;
     const v2Body = response.body ? JSON.parse(response.body) : undefined;
 
-    return Request.sendResponse(res, v2Body);
+    return Request.sendResponse(req, res, v2Body);
 }
 
 /**
@@ -535,7 +535,7 @@ async function purgeEntities(req, res) {
     res.statusCode = responseDelete.statusCode;
     const v2BodyDelete = responseDelete.body ? JSON.parse(responseDelete.body) : undefined;
 
-    return Request.sendResponse(res, v2BodyDelete);
+    return Request.sendResponse(req, res, v2BodyDelete);
 }
 
 function createNextPrevBaseURL(req) {

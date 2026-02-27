@@ -4,9 +4,11 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const _ = require('lodash');
 
-const indexRouter = require('./routes/index');
+const nsgiLdRouter = require('./routes/ngsi-ld');
+const nsgiv2Router = require('./routes/ngsi-v2');
 const nocache = require('nocache');
 const Request = require('./lib/request');
+const tryCatch = require('./lib/errors').tryCatch;
 
 const app = express();
 app.disable('x-powered-by');
@@ -34,11 +36,26 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.use('/ngsi-ld/v1', indexRouter);
-app.use('//ngsi-ld/v1', indexRouter);
+app.use('/ngsi/v2', nsgiv2Router);
+app.use('//ngsi/v2', nsgiv2Router);
+app.use('/ngsi-ld/v1', nsgiLdRouter);
+app.use('//ngsi-ld/v1', nsgiLdRouter);
 
 app.get('/context.jsonld', (req, res) => {
     return Request.serveContext(req, res);
 });
+
+app.get(
+    '/health',
+    tryCatch(async (req, res) => {
+        const options = {
+            method: 'GET',
+            throwHttpErrors: false,
+            retry: 0
+        };
+        const result = await Request.sendRequest('/../version/', options);
+        return res.sendStatus(result.statusCode);
+    })
+);
 
 module.exports = app;
