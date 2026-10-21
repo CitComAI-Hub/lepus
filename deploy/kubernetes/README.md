@@ -76,6 +76,7 @@ Después accede a `http://localhost:3000/ngsi-ld/v1/entities?type=WasteContainer
 | `NGSI_V2_CONTEXT_BROKER` | URL del broker NGSI-v2 | ConfigMap |
 | `NGSI_V2_TIMEOUT` | Timeout de cada petición al broker (ms) | ConfigMap |
 | `LEPUS_DEFAULT_TENANT` | `Fiware-Service` por defecto (dominio Keystone) | ConfigMap |
+| `NGSI_V2_PLAIN_IDS` | `true` si los ids NGSI-v2 no son URN (VLCi): quita el prefijo `urn:ngsi-ld:<tipo>:` de los ids de las peticiones | ConfigMap |
 | `LEPUS_SERVICE_PATHS` | JSON tipo de entidad → `Fiware-ServicePath` (proyecto Keystone). Por defecto, `lib/entityServicePaths.js` | Opcional |
 | `LEPUS_PORT` | Puerto HTTP de Lepus; por defecto `3000` | Opcional |
 | `LEPUS_URL`, `LEPUS_ALIAS`, `LEPUS_RELAY_TIMEOUT`, `LEPUS_MULTI_CORE`, `NGSI_V2_ENTITY_LIMIT`, `USER_CONTEXT_URL`, `CORE_CONTEXT_URL` | Opciones adicionales de la aplicación | Opcionales |

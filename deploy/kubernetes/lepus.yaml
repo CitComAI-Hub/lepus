@@ -9,6 +9,8 @@ data:
   NGSI_V2_CONTEXT_BROKER: "https://cb.vlci.valencia.es:10027"
   NGSI_V2_TIMEOUT: "10000"
   LEPUS_DEFAULT_TENANT: "tef_vlci"
+  # VLCi ids are not URNs (e.g. wastecontainer:6205...).
+  NGSI_V2_PLAIN_IDS: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment

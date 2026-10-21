@@ -30,6 +30,9 @@ config.limit = 1000;
 // NGSI-v2 tenant (Fiware-Service) used when the request has no NGSILD-Tenant header
 config.defaultTenant = '';
 
+// The NGSI-v2 ids are not URNs: strip the urn:ngsi-ld:<type>: prefix that Lepus adds to them
+config.plainIds = false;
+
 // NGSI-v2 servicePath (Fiware-ServicePath) of each entity type, used when the request has no scopeQ
 config.servicePaths = require('./lib/entityServicePaths');
 
