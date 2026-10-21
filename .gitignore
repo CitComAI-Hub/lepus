@@ -34,7 +34,9 @@ jspm_packages/
 .npm
 .eslintcache
 *.tgz
-#.env
+.env
+.env.*
+!.env.example
 .next
 push.sh
 package-lock.json

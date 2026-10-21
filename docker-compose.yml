@@ -1,5 +1,4 @@
 
-version: '3.9'
 services:
   # Databases
   mongo-for-orion-v2:
@@ -32,6 +31,12 @@ services:
     container_name: lepus
     networks:
       - default
+    environment:
+      AUTH_URL: ${AUTH_URL:-}
+      AUTH_USER: ${AUTH_USER:-}
+      AUTH_PASSWORD: ${AUTH_PASSWORD:-}
+      NGSI_V2_CONTEXT_BROKER: ${NGSI_V2_CONTEXT_BROKER:-http://orion2:1026}
+      NGSI_V2_TIMEOUT: ${NGSI_V2_TIMEOUT:-1000}
     expose:
       - "3000"
     ports:

@@ -96,8 +96,11 @@ Internally
 To use the wrapper, run:
 
 ```console
- docker-compose up
+cp .env.example .env
+docker compose up
 ```
+
+Set the local endpoints and any authentication credentials in `.env` before starting. This file is for local npm/Compose use only; Kubernetes configuration is documented separately below.
 
 Then insert some data into an NGSI-v2 broker such as Telefónica's [Orion Context Broker](https://github.com/telefonicaid/fiware-orion)
 
@@ -235,7 +238,7 @@ And `https://<lepus-context-broker>/context.jsonld` returns NGSI-LD with a fixed
 
 ### Configuration
 
-Configuration occurs using Docker Environment variables:
+Configuration is provided to the application as environment variables. When running `npm start`, `bin/www` loads them from a local `.env` file. Docker Compose passes the application settings declared under the `lepus` service; its `.env` is only used locally for Compose interpolation. Neither local `.env` file is used by Kubernetes.
 
 -   **DEBUG** - for debug output - e.g. `DEBUG=adapter:*`
 -   **LEPUS_PORT** - port used for interactions - defaults to `3000`
@@ -248,6 +251,9 @@ Configuration occurs using Docker Environment variables:
 -   **NGSI_V2_TIMEOUT** maximum length of time to access the **NGSI-v2** [Orion Context Broker](https://github.com/telefonicaid/fiware-orion) URL in milliseconds
 -   **USER_CONTEXT_URL** for the fixed JSON-LD `@context` to be supplied - e.g. `USER_CONTEXT_URL=https://fiware.github.io/tutorials.Step-by-Step/tutorials-context.jsonld`
 -   **CORE_CONTEXT_URL** for the fixed core NGSI-LD `@context` to be supplied - e.g. `CORE_CONTEXT_URL=https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld`
+-   **AUTH_URL**, **AUTH_USER** and **AUTH_PASSWORD** for Keystone v3 authentication. Keep credentials out of source control and container images.
+
+For Kubernetes, configure non-secret settings in the ConfigMap and credentials in a Secret; see the [Kubernetes deployment guide](./deploy/kubernetes/README.md). The current development manifest clones the configured fork at pod startup; review its endpoints and TLS guidance before deploying.
 
 
 ## NGSI-LD Registration
