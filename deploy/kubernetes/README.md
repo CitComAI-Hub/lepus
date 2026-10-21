@@ -12,12 +12,14 @@ No añadas contraseñas, tokens ni archivos `.env` a los manifiestos ni a Git. E
 
 ## 1. Publicar la imagen
 
-Desde una revisión commiteada de este repo, con un tag nuevo (el pod no vuelve a descargar un tag que ya tiene):
+El workflow `.github/workflows/publish.yml` construye y publica la imagen al subir un tag `v*`. Usa siempre un tag nuevo (el pod no vuelve a descargar un tag que ya tiene):
 
 ```bash
-docker build -t ghcr.io/citcomai-hub/lepus:<tag> .
-docker push ghcr.io/citcomai-hub/lepus:<tag>
+git tag v1.1
+git push citcom-vlc v1.1      # publica ghcr.io/citcomai-hub/lepus:v1.1
 ```
+
+La primera vez, el paquete se crea privado: hazlo público en *Package settings → Change visibility* para que el clúster lo descargue sin pull secret.
 
 Cambia el tag de `image` en `lepus.yaml` (y `lepus_image_tag` en `dataspace-on-upv`).
 
