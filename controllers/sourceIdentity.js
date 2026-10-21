@@ -10,11 +10,7 @@ const debug = require('debug')('adapter:identity');
 const NGSI_LD = require('../lib/ngsi-ld');
 const Config = require('../lib/configService');
 const Request = require('../lib/request');
-const got = require('got').extend({
-    timeout: {
-        request: Config.getConfig().v2Timeout
-    }
-});
+const got = require('got');
 
 function is2xxSuccessful(status) {
     return Math.floor(status / 100) === 2;
@@ -40,7 +36,10 @@ async function getIdentity(req, res) {
     };
     debug('getIdentity');
 
-    const response = await got(path.join(Config.getConfig().v2ContextBroker, 'version'), options);
+    const response = await got(path.join(Config.getConfig().v2ContextBroker, 'version'), {
+        ...options,
+        timeout: { request: Number(Config.getConfig().v2Timeout) }
+    });
 
     res.statusCode = response.statusCode;
     if (res.locals.tenant) {

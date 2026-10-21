@@ -15,11 +15,7 @@ const debug = require('debug')('adapter:notify');
 const moment = require('moment-timezone');
 const { v4: uuidv4 } = require('uuid');
 
-const got = require('got').extend({
-    timeout: {
-        request: Config.getConfig().relayTimeout
-    }
-});
+const got = require('got');
 
 async function notifyAsLD(req, res) {
     const target = req.get('Target');
@@ -63,7 +59,10 @@ async function notifyAsLD(req, res) {
     }
 
     debug('notify: ', req.path, options);
-    const response = await got(target, options);
+    const response = await got(target, {
+        ...options,
+        timeout: { request: Number(Config.getConfig().relayTimeout) }
+    });
 
     res.statusCode = response.statusCode;
     if (response.headers['content-type']) {
@@ -119,7 +118,10 @@ async function notifyAsV2(req, res) {
     };
 
     debug('notify: ', req.path, options);
-    const response = await got(target, options);
+    const response = await got(target, {
+        ...options,
+        timeout: { request: Number(Config.getConfig().relayTimeout) }
+    });
 
     res.statusCode = response.statusCode;
     if (response.headers['content-type']) {
