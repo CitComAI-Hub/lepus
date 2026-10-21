@@ -8,10 +8,7 @@ data:
   AUTH_URL: "https://auth.vlci.valencia.es:15001/v3/auth/tokens"
   NGSI_V2_CONTEXT_BROKER: "https://cb.vlci.valencia.es:10027"
   NGSI_V2_TIMEOUT: "10000"
-  # Development-only workaround for the current broker certificate hostname mismatch.
-  NODE_TLS_REJECT_UNAUTHORIZED: "0"
-  # Prevent dotenv from loading any .env file present in the cloned repository.
-  DOTENV_CONFIG_PATH: "/dev/null"
+  LEPUS_DEFAULT_TENANT: "tef_vlci"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,15 +29,8 @@ spec:
     spec:
       containers:
         - name: lepus
-          image: node:20
+          image: ghcr.io/citcomai-hub/lepus:v1.0
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              git clone --depth 1 https://github.com/CitComAI-Hub/lepus.git /lepus &&
-              cd /lepus &&
-              npm install &&
-              npm start
           ports:
             - name: http
               containerPort: 3000
