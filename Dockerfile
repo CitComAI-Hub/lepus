@@ -43,10 +43,10 @@ RUN \
 USER node
 ENV NODE_ENV=development
 # Ports used by application
-EXPOSE ${WEB_APP_PORT:-3000} ${DUMMY_DEVICES_PORT:-3001}
+EXPOSE 3000
 CMD ["node", "/opt/adapter/bin/www"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-   CMD npm run healthcheck
+   CMD ["npm", "run", "healthcheck"]
 
 ########################################################################################
 #
@@ -86,7 +86,7 @@ WORKDIR /opt/adapter
 USER nobody
 ENV NODE_ENV=production
 # Ports used by application
-EXPOSE ${WEB_APP_PORT:-3000} 
+EXPOSE 3000
 CMD ["./bin/www"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
