@@ -27,4 +27,10 @@ config.multiCore = false;
 
 config.limit = 1000;
 
+// NGSI-v2 tenant (Fiware-Service) used when the request has no NGSILD-Tenant header
+config.defaultTenant = '';
+
+// NGSI-v2 servicePath (Fiware-ServicePath) of each entity type, used when the request has no scopeQ
+config.servicePaths = require('./lib/entityServicePaths');
+
 module.exports = config;

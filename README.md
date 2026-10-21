@@ -251,9 +251,13 @@ Configuration is provided to the application as environment variables. When runn
 -   **NGSI_V2_TIMEOUT** maximum length of time to access the **NGSI-v2** [Orion Context Broker](https://github.com/telefonicaid/fiware-orion) URL in milliseconds
 -   **USER_CONTEXT_URL** for the fixed JSON-LD `@context` to be supplied - e.g. `USER_CONTEXT_URL=https://fiware.github.io/tutorials.Step-by-Step/tutorials-context.jsonld`
 -   **CORE_CONTEXT_URL** for the fixed core NGSI-LD `@context` to be supplied - e.g. `CORE_CONTEXT_URL=https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld`
--   **AUTH_URL**, **AUTH_USER** and **AUTH_PASSWORD** for Keystone v3 authentication. Keep credentials out of source control and container images.
+-   **AUTH_URL**, **AUTH_USER** and **AUTH_PASSWORD** for Keystone v3 authentication. Keep credentials out of source control and container images. Without `AUTH_URL` no token is requested.
+-   **LEPUS_DEFAULT_TENANT** - NGSI-v2 `Fiware-Service` used when the request has no `NGSILD-Tenant` header - e.g. `LEPUS_DEFAULT_TENANT=tef_vlci`
+-   **LEPUS_SERVICE_PATHS** - JSON object with the NGSI-v2 `Fiware-ServicePath` of each entity type, used when the request has no `scopeQ` - defaults to [`lib/entityServicePaths.js`](./lib/entityServicePaths.js)
 
-For Kubernetes, configure non-secret settings in the ConfigMap and credentials in a Secret; see the [Kubernetes deployment guide](./deploy/kubernetes/README.md). The current development manifest clones the configured fork at pod startup; review its endpoints and TLS guidance before deploying.
+NGSI-LD has no servicePath, but NGSI-v2 and its Keystone projects do. For every request Lepus sends `Fiware-Service` (the `NGSILD-Tenant` header or `LEPUS_DEFAULT_TENANT`) and `Fiware-ServicePath` (`scopeQ`, or the servicePath of the entity type taken from `?type=`, the entity id `urn:ngsi-ld:<type>:...` or the body, or `/`). With Keystone, they are the domain and the project of the token. When a type has several servicePaths, the first one is used. Other client headers, such as `Authorization`, are not forwarded to the NGSI-v2 broker.
+
+For Kubernetes, configure non-secret settings in the ConfigMap and credentials in a Secret; see the [Kubernetes deployment guide](./deploy/kubernetes/README.md). The manifest uses the `ghcr.io/citcomai-hub/lepus` image.
 
 
 ## NGSI-LD Registration
