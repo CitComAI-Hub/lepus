@@ -13,6 +13,40 @@ An **NGSI-LD** wrapper for use with **NGSI-v2** Context Brokers. It understands 
 the NGSI-v2 broker behind it and transforms responses back to NGSI-LD using a **fixed JSON-LD `@context`**. It supports the NGSI-LD **federationOps** endpoints only 
 and is designed to be used as a registered source with NGSI-LD Context Brokers in federation mode.
 
+## CitCom fork
+
+This is the [CitComAI-Hub](https://github.com/CitComAI-Hub/lepus) fork of [jason-fox/lepus](https://github.com/jason-fox/lepus). It
+serves the NGSI-v2 data of the València City Council platform (VLCi, `https://cb.vlci.valencia.es:10027`) as NGSI-LD in the CitCom data
+space. On top of upstream it adds:
+
+-   **Keystone v3 authentication.** With `AUTH_URL`, `AUTH_USER` and `AUTH_PASSWORD`, Lepus gets a token from Keystone and sends it to the
+    NGSI-v2 broker as `X-Auth-Token`. The `Fiware-Service` is the Keystone domain and the `Fiware-ServicePath` the project. Tokens are
+    cached per domain and project until they expire, and they are never logged. Without `AUTH_URL` no token is requested, as upstream.
+-   **Tenant and servicePath of every request.** NGSI-LD has no servicePath, so Lepus deduces it from the entity type with a map
+    (`LEPUS_SERVICE_PATHS`, by default [`lib/entityServicePaths.js`](./lib/entityServicePaths.js)), and uses `LEPUS_DEFAULT_TENANT` when
+    the request has no `NGSILD-Tenant`. Only these headers are forwarded, never the client's `Host` or `Authorization`. See
+    [Configuration](#configuration).
+-   **Plain NGSI-v2 IDs.** VLCi IDs are not URNs (e.g. `wastecontainer:6205...`). Lepus returns them as `urn:ngsi-ld:<type>:<id>` and,
+    with `NGSI_V2_PLAIN_IDS=true`, strips that prefix again from the IDs of the requests, so an entity can be read by the ID Lepus
+    returned.
+-   **Smart Data Models `@context`.** When reading entities as JSON-LD, the `@context` is the one of the Smart Data Models subject that
+    contains the entity type (e.g. `dataModel.WasteManagement` for `WasteContainer`), taken from the official list of data models. If the
+    type is not there, `USER_CONTEXT_URL` is used.
+-   **Timeouts that work.** `NGSI_V2_TIMEOUT` and `LEPUS_RELAY_TIMEOUT` were ignored upstream; here they apply to every request.
+-   **Configuration out of the repository.** `.env` is ignored (template: [`.env.example`](./.env.example)) and
+    [`deploy/kubernetes`](./deploy/kubernetes/README.md) deploys Lepus with a ConfigMap and a Secret.
+-   **Image published to GHCR** by [`.github/workflows/publish.yml`](./.github/workflows/publish.yml). See
+    [Publishing a new version](#publishing-a-new-version).
+
+Known limitations:
+
+-   When an entity type has several servicePaths (e.g. `AirQualityObserved`), only the first one is used.
+-   `NGSI_V2_PLAIN_IDS` strips the prefix from the path and the `id=` parameter, not from the bodies of batch operations.
+-   The list of Smart Data Models is downloaded again for every JSON-LD read; it is not cached.
+
+In the CitCom data space, Lepus is deployed by the `providers/townhall_vlc/lepus` layer of
+[dataspace-on-upv](https://github.com/CitComAI-Hub/dataspace-on-upv).
+
 ### Example
 
 _Give me the Stores with the name "Einkauf" in **NGSI-LD** format_
@@ -253,10 +287,10 @@ Configuration is provided to the application as environment variables. When runn
 -   **CORE_CONTEXT_URL** for the fixed core NGSI-LD `@context` to be supplied - e.g. `CORE_CONTEXT_URL=https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld`
 -   **AUTH_URL**, **AUTH_USER** and **AUTH_PASSWORD** for Keystone v3 authentication. Keep credentials out of source control and container images. Without `AUTH_URL` no token is requested.
 -   **LEPUS_DEFAULT_TENANT** - NGSI-v2 `Fiware-Service` used when the request has no `NGSILD-Tenant` header - e.g. `LEPUS_DEFAULT_TENANT=tef_vlci`
--   **NGSI_V2_PLAIN_IDS** - `true` when the NGSI-v2 ids are not URNs. Lepus returns them as `urn:ngsi-ld:<type>:<id>` and, with this option, strips that prefix again from the ids of the requests (path and `id=`), so entities can be read by the id Lepus returned - defaults to `false`
+-   **NGSI_V2_PLAIN_IDS** - `true` when the NGSI-v2 IDs are not URNs. Lepus returns them as `urn:ngsi-ld:<type>:<id>` and, with this option, strips that prefix again from the IDs of the requests (path and `id=`), so entities can be read by the ID Lepus returned - defaults to `false`
 -   **LEPUS_SERVICE_PATHS** - JSON object with the NGSI-v2 `Fiware-ServicePath` of each entity type, used when the request has no `scopeQ` - defaults to [`lib/entityServicePaths.js`](./lib/entityServicePaths.js)
 
-NGSI-LD has no servicePath, but NGSI-v2 and its Keystone projects do. For every request Lepus sends `Fiware-Service` (the `NGSILD-Tenant` header or `LEPUS_DEFAULT_TENANT`) and `Fiware-ServicePath` (`scopeQ`, or the servicePath of the entity type taken from `?type=`, the entity id `urn:ngsi-ld:<type>:...` or the body, or `/`). With Keystone, they are the domain and the project of the token. When a type has several servicePaths, the first one is used. Other client headers, such as `Authorization`, are not forwarded to the NGSI-v2 broker.
+NGSI-LD has no servicePath, but NGSI-v2 and its Keystone projects do. For every request Lepus sends `Fiware-Service` (the `NGSILD-Tenant` header or `LEPUS_DEFAULT_TENANT`) and `Fiware-ServicePath` (`scopeQ`, or the servicePath of the entity type taken from `?type=`, the entity ID `urn:ngsi-ld:<type>:...` or the body, or `/`). With Keystone, they are the domain and the project of the token. When a type has several servicePaths, the first one is used. Other client headers, such as `Authorization`, are not forwarded to the NGSI-v2 broker.
 
 For Kubernetes, configure non-secret settings in the ConfigMap and credentials in a Secret; see the [Kubernetes deployment guide](./deploy/kubernetes/README.md). The manifest uses the `ghcr.io/citcomai-hub/lepus` image.
 
@@ -295,6 +329,40 @@ curl -L 'http://localhost:9090/ngsi-ld/v1/csourceRegistrations/' \
 }'
 ```
 
+
+## Publishing a new version
+
+The image is `ghcr.io/citcomai-hub/lepus`. It belongs to the CitComAI-Hub organization and is public, so clusters pull it without a pull
+secret. It is built and pushed by [`.github/workflows/publish.yml`](./.github/workflows/publish.yml) when a `v*` tag is pushed: the
+workflow runs the unit tests, builds the `Dockerfile` and publishes `:<tag>` and `:sha-<commit>`, linked to this repository. Nobody needs
+to log in to GHCR.
+
+1.  Merge the changes to `master` and push them:
+
+    ```console
+    git push citcom-vlc master
+    ```
+
+2.  Tag `master` with a new version and push the tag. Use a new tag every time: a pod does not pull again a tag it already has.
+
+    ```console
+    git tag -a v1.1 -m "Lepus v1.1"
+    git push citcom-vlc v1.1
+    ```
+
+3.  Follow the run in [Actions](https://github.com/CitComAI-Hub/lepus/actions). When it finishes, the image is available:
+
+    ```console
+    docker pull ghcr.io/citcomai-hub/lepus:v1.1
+    ```
+
+4.  Update the deployments to the new tag:
+
+    -   CitCom data space: `lepus_image_tag` in `providers/townhall_vlc/lepus/envs/dev.tfvars` of
+        [dataspace-on-upv](https://github.com/CitComAI-Hub/dataspace-on-upv), through a pull request, and then apply that layer.
+    -   [`deploy/kubernetes/lepus.yaml`](./deploy/kubernetes/lepus.yaml): the `image` of the Deployment.
+
+The workflow can also be run by hand from Actions (_Run workflow_); then it only publishes `:sha-<commit>`.
 
 ## License
 
