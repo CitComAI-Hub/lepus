@@ -98,6 +98,56 @@ describe('Plain NGSI-v2 ids', function () {
         });
     });
 
+    describe('When an entity is read by id in keyValues with NGSI_V2_PLAIN_IDS', function () {
+        beforeEach(startLepus(true));
+        beforeEach(function (done) {
+            contextBrokerMock = nock(V2_BROKER)
+                .get('/v2/entities/' + V2_ID)
+                .query(true)
+                .reply(200, { id: V2_ID, type: 'WasteContainer', fillingLevel: 0.5 });
+            done();
+        });
+
+        it('should return the id as a URN', function (done) {
+            request(
+                { method: 'GET', url: LEPUS_URL + 'entities/' + LD_ID, searchParams: 'options=keyValues' },
+                function (error, response, body) {
+                    contextBrokerMock.done();
+                    response.statusCode.should.equal(200);
+                    body.id.should.equal(LD_ID);
+                    body.fillingLevel.should.equal(0.5);
+                    done();
+                }
+            );
+        });
+    });
+
+    describe('When entities are queried in keyValues with NGSI_V2_PLAIN_IDS', function () {
+        beforeEach(startLepus(true));
+        beforeEach(function (done) {
+            contextBrokerMock = nock(V2_BROKER)
+                .get('/v2/entities')
+                .query(true)
+                .reply(200, [
+                    { id: V2_ID, type: 'WasteContainer', fillingLevel: 0.5 },
+                    { id: LD_ID, type: 'WasteContainer', fillingLevel: 0.2 }
+                ]);
+            done();
+        });
+
+        it('should return every id as a URN, without prefixing twice', function (done) {
+            request(
+                { method: 'GET', url: LEPUS_URL + 'entities', searchParams: 'type=WasteContainer&options=keyValues' },
+                function (error, response, body) {
+                    contextBrokerMock.done();
+                    response.statusCode.should.equal(200);
+                    body.map((e) => e.id).should.eql([LD_ID, LD_ID]);
+                    done();
+                }
+            );
+        });
+    });
+
     describe('When an entity is read by id without NGSI_V2_PLAIN_IDS', function () {
         beforeEach(startLepus(false));
         beforeEach(function (done) {

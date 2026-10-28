@@ -150,7 +150,10 @@ async function readEntities(req, res) {
         });
     }
     if (transformFlags.keyValues) {
-        ldPayload = v2Body;
+        ldPayload =
+            v2Body instanceof Array
+                ? v2Body.map((entity) => NGSI_LD.formatKeyValues(entity))
+                : NGSI_LD.formatKeyValues(v2Body);
     } else if (transformFlags.attrsOnly) {
         ldPayload = NGSI_LD.formatAttribute(v2Body, transformFlags);
     } else if (v2Body instanceof Array) {
