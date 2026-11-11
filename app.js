@@ -40,10 +40,16 @@ app.use(function (req, res, next) {
         headers['fiware-service'] = tenant;
     }
     res.locals.servicePath = Tenant.servicePath(req);
+    if (res.locals.servicePath === null) {
+        res.status(400);
+        return Request.sendError(res, {
+            message: `scopeQ ${req.query.scopeQ} is not served for this entity type`
+        });
+    }
     headers['fiware-servicepath'] = res.locals.servicePath;
 
     res.locals.headers = headers;
-    next();
+    return next();
 });
 
 app.use('/ngsi/v2', nsgiv2Router);

@@ -88,11 +88,11 @@ describe('Tenant and servicePath', function () {
         });
     });
 
-    describe('When the request has a tenant and a scopeQ', function () {
+    describe('When the request has a tenant and a scopeQ served for the type', function () {
         const options = {
             method: 'GET',
             url: LEPUS_URL + 'entities',
-            searchParams: 'type=WasteContainer&scopeQ=other_path',
+            searchParams: 'type=AirQualityObserved&scopeQ=/calidad_aire_emt_vlc',
             headers: {
                 'NGSILD-Tenant': 'tenant'
             }
@@ -101,8 +101,8 @@ describe('Tenant and servicePath', function () {
         beforeEach(function (done) {
             contextBrokerMock = nock(V2_BROKER)
                 .matchHeader('fiware-service', 'tenant')
-                .matchHeader('fiware-servicepath', '/other_path')
-                .get('/v2/entities?type=WasteContainer&options=count')
+                .matchHeader('fiware-servicepath', '/calidad_aire_emt_vlc')
+                .get('/v2/entities?type=AirQualityObserved&options=count')
                 .reply(200, []);
             done();
         });
@@ -110,6 +110,72 @@ describe('Tenant and servicePath', function () {
         it('should use them instead of the defaults', function (done) {
             request(options, function (error, response, body) {
                 contextBrokerMock.done();
+                done();
+            });
+        });
+    });
+
+    describe('When the scopeQ has no leading slash', function () {
+        const options = {
+            method: 'GET',
+            url: LEPUS_URL + 'entities',
+            searchParams: 'type=WasteContainer&scopeQ=residuos_contenedores_vlc'
+        };
+
+        beforeEach(function (done) {
+            contextBrokerMock = nock(V2_BROKER)
+                .matchHeader('fiware-servicepath', '/residuos_contenedores_vlc')
+                .get('/v2/entities?type=WasteContainer&options=count')
+                .reply(200, []);
+            done();
+        });
+
+        it('should add it', function (done) {
+            request(options, function (error, response, body) {
+                contextBrokerMock.done();
+                done();
+            });
+        });
+    });
+
+    describe('When the scopeQ is not served for the type', function () {
+        const options = {
+            method: 'GET',
+            url: LEPUS_URL + 'entities',
+            searchParams: 'type=WasteContainer&scopeQ=/calidad_aire_emt_vlc'
+        };
+
+        beforeEach(function (done) {
+            contextBrokerMock = nock(V2_BROKER).get(/.*/).reply(200, []);
+            done();
+        });
+
+        it('should return 400 without asking the broker', function (done) {
+            request(options, function (error, response, body) {
+                contextBrokerMock.isDone().should.equal(false);
+                response.statusCode.should.equal(400);
+                body.type.should.equal('https://uri.etsi.org/ngsi-ld/errors/BadRequestData');
+                done();
+            });
+        });
+    });
+
+    describe('When a read by id names a type and a scopeQ of another type', function () {
+        const options = {
+            method: 'GET',
+            url: LEPUS_URL + 'entities/urn:ngsi-ld:WasteContainer:001',
+            searchParams: 'scopeQ=/calidad_aire_vlc'
+        };
+
+        beforeEach(function (done) {
+            contextBrokerMock = nock(V2_BROKER).get(/.*/).reply(200, []);
+            done();
+        });
+
+        it('should return 400 without asking the broker', function (done) {
+            request(options, function (error, response, body) {
+                contextBrokerMock.isDone().should.equal(false);
+                response.statusCode.should.equal(400);
                 done();
             });
         });
@@ -135,6 +201,14 @@ describe('Tenant and servicePath', function () {
                 contextBrokerMock.done();
                 done();
             });
+        });
+    });
+
+    describe('The servicePaths that Lepus serves by default', function () {
+        it('should not include internal servicePaths', function () {
+            const served = require('../../lib/entityServicePaths');
+            JSON.stringify(served).should.not.containEql('calidad_aire_emt_vlc');
+            served.AirQualityObserved.should.equal('/calidad_aire_vlc');
         });
     });
 });
