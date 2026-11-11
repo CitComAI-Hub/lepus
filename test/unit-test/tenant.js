@@ -75,7 +75,7 @@ describe('Tenant and servicePath', function () {
             contextBrokerMock = nock(V2_BROKER)
                 .matchHeader('fiware-service', 'tef_vlci')
                 .matchHeader('fiware-servicepath', '/residuos_contenedores_vlc')
-                .get('/v2/entities/urn:ngsi-ld:WasteContainer:001')
+                .get('/v2/entities/urn:ngsi-ld:WasteContainer:001?type=WasteContainer')
                 .reply(200, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
             done();
         });

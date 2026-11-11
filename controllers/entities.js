@@ -15,6 +15,21 @@ const NGSI_V2 = require('../lib/ngsi-v2');
 const Request = require('../lib/request');
 
 /**
+ * The entity type that the authorization policy (odrl-pap ngsi-ld:entityType)
+ * checked for this request when it comes from the path: the third
+ * ':'-separated field of the last path segment (the <type> of
+ * urn:ngsi-ld:<type>:<id>), or null when the segment has none and the policy
+ * used ?type= instead.
+ */
+function typeAuthorizedByPath(reqPath) {
+    // Decode before splitting, as APISIX does with the path it gives to OPA
+    // (nginx $uri): an encoded '/' (%2F) also starts a new segment there.
+    const segments = decodeURIComponent(reqPath.split('?')[0]).split('/');
+    const fields = segments[segments.length - 1].split(':');
+    return fields.length > 2 && fields[2] ? fields[2] : null;
+}
+
+/**
  * Forward the proxied request to read data and
  * return the response.
  *
@@ -91,6 +106,17 @@ async function readEntities(req, res) {
         if (queryQ) {
             options.searchParams.q = queryQ.replace(/"/gi, '').replace(/%22/gi, '');
         }
+    }
+
+    // The policy allowed the type named by the last path segment (when it names
+    // one), but NGSI-v2 reads by id never check it, and with NGSI_V2_PLAIN_IDS
+    // the type is even stripped from the id. Make Orion enforce that same type,
+    // replacing any ?type= from the client. When the path names no type, the
+    // policy checked ?type=, which is forwarded and enforced by Orion as is.
+    const authorizedType = req.params.id ? typeAuthorizedByPath(req.path) : null;
+    if (authorizedType) {
+        options.searchParams = options.searchParams || {};
+        options.searchParams.type = authorizedType;
     }
 
     if (transformFlags.sysAttrs) {

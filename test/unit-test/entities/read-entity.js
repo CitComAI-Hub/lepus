@@ -47,7 +47,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
             done();
@@ -81,7 +81,7 @@ describe('Read Entity', function () {
             options.method = 'HEAD';
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .head('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .head('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
             done();
@@ -115,7 +115,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/keywords.json'));
 
             done();
@@ -138,7 +138,7 @@ describe('Read Entity', function () {
                 prefer: 'ngsi-ld=1.4'
             };
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/keywords.json'));
 
             done();
@@ -162,7 +162,7 @@ describe('Read Entity', function () {
                 prefer: 'ngsi-ld=1.4'
             };
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-expiresAt.json'));
 
             done();
@@ -186,7 +186,7 @@ describe('Read Entity', function () {
                 prefer: 'ngsi-ld=1.17'
             };
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/keywords.json'));
 
             done();
@@ -207,7 +207,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             options.searchParams = 'options=concise';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
             done();
@@ -241,7 +241,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             options.searchParams = 'options=keyValues';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?options=keyValues')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?options=keyValues&type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-keyValues.json'));
 
             done();
@@ -275,7 +275,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             options.searchParams = 'attrs=category,temperature';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?attrs=category,temperature')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?attrs=category,temperature&type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
             done();
@@ -294,7 +294,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             options.searchParams = 'pick=category,temperature';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
             done();
@@ -328,7 +328,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             options.searchParams = 'omit=category,temperature';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
             done();
@@ -365,7 +365,7 @@ describe('Read Entity', function () {
 
             timekeeper.freeze(time);
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?metadata=dateCreated,dateModified,*')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?metadata=dateCreated,dateModified,*&type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-sysAttrs.json'));
 
             done();
@@ -404,7 +404,7 @@ describe('Read Entity', function () {
             options.method = 'GET';
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(404, utils.readExampleFile('./test/ngsi-v2/Not-Found.json'));
             done();
         });
@@ -432,7 +432,7 @@ describe('Read Entity', function () {
                 'NGSILD-Tenant': 'tenant'
             };
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .matchHeader('fiware-service', 'tenant')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity.json'));
 
@@ -478,7 +478,7 @@ describe('Read Entity with valueType', function () {
         beforeEach(function (done) {
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/keywords.json'));
 
             done();
@@ -500,7 +500,7 @@ describe('Read Entity with valueType', function () {
                 prefer: 'ngsi-ld=1.4'
             };
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/keywords.json'));
 
             done();
@@ -523,7 +523,7 @@ describe('Read Entity with valueType', function () {
                 prefer: 'ngsi-ld=1.17'
             };
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/keywords.json'));
 
             done();
@@ -543,7 +543,7 @@ describe('Read Entity with valueType', function () {
         beforeEach(function (done) {
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-valueType.json'));
 
             done();
@@ -576,7 +576,7 @@ describe('Read Entity with valueType', function () {
         beforeEach(function (done) {
             options.searchParams = 'options=concise';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-valueType.json'));
 
             done();
@@ -630,7 +630,7 @@ describe('Read Entity with expiresAt', function () {
         beforeEach(function (done) {
             delete options.searchParams;
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-expiresAt.json'));
 
             done();
@@ -663,7 +663,7 @@ describe('Read Entity with expiresAt', function () {
         beforeEach(function (done) {
             options.searchParams = 'options=concise';
             contextBrokerMock = nock(V2_BROKER)
-                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001')
+                .get('/v2/entities/urn:ngsi-ld:TemperatureSensor:001?type=TemperatureSensor')
                 .reply(StatusCode.OK, utils.readExampleFile('./test/ngsi-v2/Entity-expiresAt.json'));
 
             done();

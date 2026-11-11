@@ -39,6 +39,7 @@ describe('Plain NGSI-v2 ids', function () {
         beforeEach(function (done) {
             contextBrokerMock = nock(V2_BROKER)
                 .get('/v2/entities/' + V2_ID)
+                .query({ type: 'WasteContainer' })
                 .reply(200, { id: V2_ID, type: 'WasteContainer' });
             done();
         });
@@ -153,6 +154,7 @@ describe('Plain NGSI-v2 ids', function () {
         beforeEach(function (done) {
             contextBrokerMock = nock(V2_BROKER)
                 .get('/v2/entities/' + LD_ID)
+                .query({ type: 'WasteContainer' })
                 .reply(200, { id: LD_ID, type: 'WasteContainer' });
             done();
         });
