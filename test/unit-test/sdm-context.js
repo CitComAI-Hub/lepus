@@ -2,7 +2,7 @@
  * Cache of the Smart Data Models context lookup (lib/sdm_context.js)
  */
 
-const should = require('should');
+require('should'); // adds .should to every object
 const config = require('../config-test');
 const Config = require('../../lib/configService');
 const sdm = require('../../lib/sdm_context');
