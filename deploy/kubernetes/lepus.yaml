@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: lepus
-          image: ghcr.io/citcomai-hub/lepus:v1.0
+          image: ghcr.io/citcomai-hub/lepus:v1.6
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

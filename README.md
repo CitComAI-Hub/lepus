@@ -26,12 +26,22 @@ space. On top of upstream it adds:
     (`LEPUS_SERVICE_PATHS`, by default [`lib/entityServicePaths.js`](./lib/entityServicePaths.js)), and uses `LEPUS_DEFAULT_TENANT` when
     the request has no `NGSILD-Tenant`. Only these headers are forwarded, never the client's `Host` or `Authorization`. See
     [Configuration](#configuration).
--   **Plain NGSI-v2 IDs.** VLCi IDs are not URNs (e.g. `wastecontainer:6205...`). Lepus returns them as `urn:ngsi-ld:<type>:<id>` and,
-    with `NGSI_V2_PLAIN_IDS=true`, strips that prefix again from the IDs of the requests, so an entity can be read by the ID Lepus
-    returned.
+-   **Only the data that was authorized.** In a data space the policy of an offer authorizes an entity type, and NGSI-v2 would let a
+    client go around it. Lepus closes both ways (see [Access control](#access-control)):
+    -   A read by ID returns the entity only if it is of the type named in the ID (`urn:ngsi-ld:<type>:<id>`). Any `?type=` of the
+        client is replaced by that type, so an entity of another type is a `404`.
+    -   Lepus serves only the servicePaths in the map. `?scopeQ=` can choose among the servicePaths of the entity type of the request;
+        any other one gets a `400` and the request never reaches the broker.
+-   **Plain NGSI-v2 IDs.** VLCi IDs are not URNs (e.g. `wastecontainer:6205...`). Lepus returns them as `urn:ngsi-ld:<type>:<id>` in
+    every format (`keyValues` and `simplified` too) and, with `NGSI_V2_PLAIN_IDS=true`, strips that prefix again from the IDs of the
+    requests, so an entity can be read by the ID Lepus returned.
 -   **Smart Data Models `@context`.** When reading entities as JSON-LD, the `@context` is the one of the Smart Data Models subject that
     contains the entity type (e.g. `dataModel.WasteManagement` for `WasteContainer`), taken from the official list of data models. If the
-    type is not there, `USER_CONTEXT_URL` is used.
+    type is not there, `USER_CONTEXT_URL` is used. The list is downloaded once a day; if the download fails, `USER_CONTEXT_URL` is used
+    and the download is tried again after 5 minutes.
+-   **Entities that conform to NGSI-LD and Smart Data Models.** On reads, attributes with a `null` value are left out (NGSI-LD has no
+    null values) and some VLCi attributes are returned as their data model defines them. No data is invented. See
+    [Smart Data Models conformance](#smart-data-models-conformance).
 -   **Timeouts that work.** `NGSI_V2_TIMEOUT` and `LEPUS_RELAY_TIMEOUT` were ignored upstream; here they apply to every request.
 -   **Configuration out of the repository.** `.env` is ignored (template: [`.env.example`](./.env.example)) and
     [`deploy/kubernetes`](./deploy/kubernetes/README.md) deploys Lepus with a ConfigMap and a Secret.
@@ -40,9 +50,10 @@ space. On top of upstream it adds:
 
 Known limitations:
 
--   When an entity type has several servicePaths (e.g. `AirQualityObserved`), only the first one is used.
+-   When an entity type has several servicePaths, a request reads one of them: the first one, or the one named in `?scopeQ=`.
 -   `NGSI_V2_PLAIN_IDS` strips the prefix from the path and the `id=` parameter, not from the bodies of batch operations.
--   The list of Smart Data Models is downloaded again for every JSON-LD read; it is not cached.
+-   The Smart Data Models adaptations are written for the VLCi data, in [`lib/sdmConformance.js`](./lib/sdmConformance.js). They are
+    code, not configuration.
 
 In the CitCom data space, Lepus is deployed by the `providers/townhall_vlc/lepus` layer of
 [dataspace-on-upv](https://github.com/CitComAI-Hub/dataspace-on-upv).
@@ -288,9 +299,32 @@ Configuration is provided to the application as environment variables. When runn
 -   **AUTH_URL**, **AUTH_USER** and **AUTH_PASSWORD** for Keystone v3 authentication. Keep credentials out of source control and container images. Without `AUTH_URL` no token is requested.
 -   **LEPUS_DEFAULT_TENANT** - NGSI-v2 `Fiware-Service` used when the request has no `NGSILD-Tenant` header - e.g. `LEPUS_DEFAULT_TENANT=tef_vlci`
 -   **NGSI_V2_PLAIN_IDS** - `true` when the NGSI-v2 IDs are not URNs. Lepus returns them as `urn:ngsi-ld:<type>:<id>` and, with this option, strips that prefix again from the IDs of the requests (path and `id=`), so entities can be read by the ID Lepus returned - defaults to `false`
--   **LEPUS_SERVICE_PATHS** - JSON object with the NGSI-v2 `Fiware-ServicePath` of each entity type, used when the request has no `scopeQ` - defaults to [`lib/entityServicePaths.js`](./lib/entityServicePaths.js)
+-   **LEPUS_SERVICE_PATHS** - JSON object with the NGSI-v2 `Fiware-ServicePath` of each entity type (a string, or a list when the type has several) - e.g. `LEPUS_SERVICE_PATHS={"WasteContainer":"/residuos_contenedores_vlc"}`. Lepus serves only these servicePaths - defaults to [`lib/entityServicePaths.js`](./lib/entityServicePaths.js)
 
-NGSI-LD has no servicePath, but NGSI-v2 and its Keystone projects do. For every request Lepus sends `Fiware-Service` (the `NGSILD-Tenant` header or `LEPUS_DEFAULT_TENANT`) and `Fiware-ServicePath` (`scopeQ`, or the servicePath of the entity type taken from `?type=`, the entity ID `urn:ngsi-ld:<type>:...` or the body, or `/`). With Keystone, they are the domain and the project of the token. When a type has several servicePaths, the first one is used. Other client headers, such as `Authorization`, are not forwarded to the NGSI-v2 broker.
+NGSI-LD has no servicePath, but NGSI-v2 and its Keystone projects do. For every request Lepus sends `Fiware-Service` (the `NGSILD-Tenant` header or `LEPUS_DEFAULT_TENANT`) and `Fiware-ServicePath`. The servicePath is the one mapped to the entity type of the request, which is taken from `?type=`, the entity ID `urn:ngsi-ld:<type>:...` or the body; a type that is not in the map uses `/`. With Keystone, they are the domain and the project of the token. Other client headers, such as `Authorization`, are not forwarded to the NGSI-v2 broker.
+
+### Access control
+
+Lepus does not authenticate its clients. In a data space it runs behind the gateway of the connector, which checks the token and the policy of the offer the client bought. That policy authorizes an **entity type** (`ngsi-ld:entityType` in odrl-pap), read from the last segment of the path (`urn:ngsi-ld:<type>:<id>`) or else from `?type=`. Lepus makes the NGSI-v2 broker keep to what the policy checked:
+
+-   **Reads by ID.** NGSI-v2 reads an entity by its ID without looking at its type, so the buyer of one dataset could read an entity of another one with a forged ID (`/entities/urn:ngsi-ld:WasteContainer:<air quality id>`). Lepus sends the broker the type named in the ID, replacing any `?type=` of the client, and the broker answers `404` when the entity is of another type. When the last segment names no type (e.g. `/entities/{entityId}/attrs/{attr}`), the `?type=` that the policy checked is forwarded as it is.
+-   **servicePaths.** The map lists the servicePaths that may be offered, and Lepus serves nothing else. `?scopeQ=` must be one of the servicePaths mapped to the entity type of the request (`/` for a type that is not in the map). Any other value gets `400 BadRequestData` and the request is not sent to the broker. Keep internal servicePaths out of the map: the default one leaves out the EMT air quality sensors of VLCi (`/calidad_aire_emt_vlc`) on purpose.
+
+### Smart Data Models conformance
+
+The entities read from VLCi are adapted by [`lib/sdmConformance.js`](./lib/sdmConformance.js) before they are returned, in the normalized, concise and `keyValues` formats (the read of a single attribute, `/attrs/{attr}`, is not adapted):
+
+| Entity type | Attribute | In VLCi | Returned by Lepus |
+| --- | --- | --- | --- |
+| Any | Any | `null` | The attribute is left out |
+| `WasteContainer` | `refDevice` | One reference | A list of references |
+| `WasteContainer` | `category` | `Superficie` | `ground` |
+| `WasteContainer` | `fillingLevel` | Sometimes a number in a string (`"0"`) | The number |
+| `TrafficFlowObserved` | `intensity` | `-1` when there is no measurement | The attribute is left out |
+
+Each rule is a format change or the removal of a "no data" value. What would need new data is not fixed: 5 `WasteContainer` entities have no `location` in VLCi and do not conform.
+
+[`tools/sdm-audit`](./tools/sdm-audit/README.md) checks the entities that a running Lepus returns against the official schemas, pinned to a commit of each Smart Data Models repository. With v1.6 and the VLCi data of 2026-11-12: `AirQualityObserved` 33 of 33, `TrafficFlowObserved` 386 of 386, `WasteContainer` 538 of 543. Run it again after changing the adaptations or the data.
 
 For Kubernetes, configure non-secret settings in the ConfigMap and credentials in a Secret; see the [Kubernetes deployment guide](./deploy/kubernetes/README.md). The manifest uses the `ghcr.io/citcomai-hub/lepus` image.
 
@@ -346,14 +380,14 @@ to log in to GHCR.
 2.  Tag `master` with a new version and push the tag. Use a new tag every time: a pod does not pull again a tag it already has.
 
     ```console
-    git tag -a v1.1 -m "Lepus v1.1"
-    git push citcom-vlc v1.1
+    git tag -a v1.7 -m "Lepus v1.7"
+    git push citcom-vlc v1.7
     ```
 
 3.  Follow the run in [Actions](https://github.com/CitComAI-Hub/lepus/actions). When it finishes, the image is available:
 
     ```console
-    docker pull ghcr.io/citcomai-hub/lepus:v1.1
+    docker pull ghcr.io/citcomai-hub/lepus:v1.7
     ```
 
 4.  Update the deployments to the new tag:

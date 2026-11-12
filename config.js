@@ -33,7 +33,7 @@ config.defaultTenant = '';
 // The NGSI-v2 ids are not URNs: strip the urn:ngsi-ld:<type>: prefix that Lepus adds to them
 config.plainIds = false;
 
-// NGSI-v2 servicePath (Fiware-ServicePath) of each entity type, used when the request has no scopeQ
+// NGSI-v2 servicePath (Fiware-ServicePath) of each entity type. Lepus serves only these: ?scopeQ= can choose among the ones of the type
 config.servicePaths = require('./lib/entityServicePaths');
 
 module.exports = config;

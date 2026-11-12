@@ -15,8 +15,8 @@ No añadas contraseñas, tokens ni archivos `.env` a los manifiestos ni a Git. E
 El workflow `.github/workflows/publish.yml` construye y publica la imagen al subir un tag `v*`. Usa siempre un tag nuevo (el pod no vuelve a descargar un tag que ya tiene):
 
 ```bash
-git tag v1.1
-git push citcom-vlc v1.1      # publica ghcr.io/citcomai-hub/lepus:v1.1
+git tag v1.7
+git push citcom-vlc v1.7      # publica ghcr.io/citcomai-hub/lepus:v1.7
 ```
 
 La primera vez, el paquete se crea privado: hazlo público en *Package settings → Change visibility* para que el clúster lo descargue sin pull secret.
@@ -79,7 +79,7 @@ Después accede a `http://localhost:3000/ngsi-ld/v1/entities?type=WasteContainer
 | `NGSI_V2_TIMEOUT` | Timeout de cada petición al broker (ms) | ConfigMap |
 | `LEPUS_DEFAULT_TENANT` | `Fiware-Service` por defecto (dominio Keystone) | ConfigMap |
 | `NGSI_V2_PLAIN_IDS` | `true` si los ids NGSI-v2 no son URN (VLCi): quita el prefijo `urn:ngsi-ld:<tipo>:` de los ids de las peticiones | ConfigMap |
-| `LEPUS_SERVICE_PATHS` | JSON tipo de entidad → `Fiware-ServicePath` (proyecto Keystone). Por defecto, `lib/entityServicePaths.js` | Opcional |
+| `LEPUS_SERVICE_PATHS` | JSON tipo de entidad → `Fiware-ServicePath` (proyecto Keystone). Lepus solo sirve estos servicePaths: un `?scopeQ=` distinto recibe un `400`. Por defecto, `lib/entityServicePaths.js` | Opcional |
 | `LEPUS_PORT` | Puerto HTTP de Lepus; por defecto `3000` | Opcional |
 | `LEPUS_URL`, `LEPUS_ALIAS`, `LEPUS_RELAY_TIMEOUT`, `LEPUS_MULTI_CORE`, `NGSI_V2_ENTITY_LIMIT`, `USER_CONTEXT_URL`, `CORE_CONTEXT_URL` | Opciones adicionales de la aplicación | Opcionales |
 | `DEBUG` | Salida de depuración, por ejemplo `adapter:*` | Opcional; no activar normalmente en producción |
