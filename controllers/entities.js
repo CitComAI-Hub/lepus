@@ -13,6 +13,7 @@ const path = require('node:path');
 const NGSI_LD = require('../lib/ngsi-ld');
 const NGSI_V2 = require('../lib/ngsi-v2');
 const Request = require('../lib/request');
+const SdmConformance = require('../lib/sdmConformance');
 
 /**
  * The entity type that the authorization policy (odrl-pap ngsi-ld:entityType)
@@ -175,19 +176,27 @@ async function readEntities(req, res) {
             detail: `${req.path}`
         });
     }
+    // NGSI-LD and Smart Data Models conformance (lib/sdmConformance.js): no null
+    // values, and per-type fixes of VLCi attributes. The body is in keyValues
+    // when Lepus asked Orion for it, whatever the client's flags say.
+    const v2KeyValues = String((options.searchParams && options.searchParams.options) || '')
+        .split(',')
+        .includes('keyValues');
+    const entities = transformFlags.attrsOnly ? v2Body : SdmConformance.adaptBody(v2Body, v2KeyValues);
+
     if (transformFlags.keyValues) {
         ldPayload =
-            v2Body instanceof Array
-                ? v2Body.map((entity) => NGSI_LD.formatKeyValues(entity))
-                : NGSI_LD.formatKeyValues(v2Body);
+            entities instanceof Array
+                ? entities.map((entity) => NGSI_LD.formatKeyValues(entity))
+                : NGSI_LD.formatKeyValues(entities);
     } else if (transformFlags.attrsOnly) {
-        ldPayload = NGSI_LD.formatAttribute(v2Body, transformFlags);
-    } else if (v2Body instanceof Array) {
-        ldPayload = await Promise.all(v2Body.map(async (entity) => {
+        ldPayload = NGSI_LD.formatAttribute(entities, transformFlags);
+    } else if (entities instanceof Array) {
+        ldPayload = await Promise.all(entities.map(async (entity) => {
             return await NGSI_LD.formatEntityWithDynamicContext(entity, isJSONLD, transformFlags);
         }));
     } else {
-        ldPayload = await NGSI_LD.formatEntityWithDynamicContext(v2Body, isJSONLD, transformFlags);
+        ldPayload = await NGSI_LD.formatEntityWithDynamicContext(entities, isJSONLD, transformFlags);
     }
     ldPayload = NGSI_LD.appendContext(ldPayload, isJSONLD);
     Request.linkContext(res, isJSONLD);
