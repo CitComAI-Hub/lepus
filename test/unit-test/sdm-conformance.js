@@ -42,6 +42,14 @@ describe('SDM conformance', function () {
             out.category.should.eql(['ground']);
         });
 
+        it('should turn a fillingLevel written as a number string into a number', function () {
+            SdmConformance.adaptEntity({ id: 'wc1', type: 'WasteContainer', fillingLevel: '0' }, true).fillingLevel.should.equal(0);
+            SdmConformance.adaptEntity({ id: 'wc1', type: 'WasteContainer', fillingLevel: '0.75' }, true).fillingLevel.should.equal(0.75);
+            SdmConformance.adaptEntity({ id: 'wc1', type: 'WasteContainer', fillingLevel: 0.5 }, true).fillingLevel.should.equal(0.5);
+            SdmConformance.adaptEntity({ id: 'wc1', type: 'WasteContainer', fillingLevel: 'n/a' }, true).fillingLevel.should.equal('n/a');
+            SdmConformance.adaptEntity({ id: 'wc1', type: 'WasteContainer', fillingLevel: '' }, true).fillingLevel.should.equal('');
+        });
+
         it('should leave out an intensity of -1 and keep 0', function () {
             SdmConformance.adaptEntity({ id: 't1', type: 'TrafficFlowObserved', intensity: -1 }, true).should.eql({
                 id: 't1',

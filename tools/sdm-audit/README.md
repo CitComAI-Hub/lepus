@@ -20,15 +20,16 @@ Pinned schemas: WasteManagement `aab339de6c10` (WasteContainer 0.3.0), Environme
 
 ## Results (2026-11-12, VLCi)
 
-| Type | v1.4 | v1.5 |
+| Type | v1.4 | v1.6 |
 |---|---|---|
 | AirQualityObserved | 33/33 | 33/33 |
 | TrafficFlowObserved | 330/386 | 386/386 |
-| WasteContainer | 161/543 | 535/543 |
+| WasteContainer | 161/543 | 538/543 |
 
-v1.5 adaptations are in `lib/sdmConformance.js`: null attributes left out (NGSI-LD has no
-null values), WasteContainer `refDevice` as an array and `category` `Superficie` →
-`ground`, TrafficFlowObserved `intensity` -1 (no measurement) left out.
+The adaptations are in `lib/sdmConformance.js` (v1.5, v1.6): null attributes left out
+(NGSI-LD has no null values); WasteContainer `refDevice` as an array, `category`
+`Superficie` → `ground`, `fillingLevel` number strings (`"0"`) as numbers;
+TrafficFlowObserved `intensity` -1 (no measurement) left out.
 
 ## Baseline: known deviations in VLCi data
 
@@ -38,7 +39,6 @@ Ajuntament. A new audit should only show these; anything else is new.
 | Type | Deviation | Entities |
 |---|---|---|
 | WasteContainer | `location` missing (null in VLCi; SDM requires it) | 5 |
-| WasteContainer | `fillingLevel` is the string `"0"`, not a number | 3 |
 
 Attributes VLCi adds and SDM does not define (`TimeInstant`, `height`, `modelName`, the
 air-quality `*Flag`/`*Origin` attributes, …) are allowed by SDM and not deviations.
